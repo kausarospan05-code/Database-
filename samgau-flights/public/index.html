@@ -1,0 +1,921 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Samgau Globe</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+:root{--glass:rgba(13,20,38,.74);--glass2:rgba(22,32,56,.78);--line:rgba(148,163,184,.18);--line2:rgba(148,163,184,.32);
+--text:#e2e8f0;--mute:#94a3b8;--dim:#64748b;--cyan:#38bdf8;--cyan2:#06b6d4;--ok:#34d399;--bad:#f87171;--warn:#fbbf24;--biz:#a855f7;
+--sans:'Inter',system-ui,-apple-system,'Segoe UI',sans-serif;--mono:'JetBrains Mono',ui-monospace,monospace}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:#01030a;color:var(--text);font:14px/1.45 var(--sans);overflow:hidden}
+button,input,select{font:inherit;color:inherit}
+a{color:var(--cyan)}
+#space{position:fixed;inset:0;z-index:0}
+#earth{position:fixed;inset:0;z-index:1}
+.top{position:fixed;top:0;left:0;right:0;height:58px;display:flex;align-items:center;gap:14px;padding:0 20px;z-index:5;pointer-events:none}
+.top>*{pointer-events:auto}
+.logo{font:800 21px var(--sans);letter-spacing:-.02em;cursor:pointer;display:flex;align-items:center;gap:8px;text-shadow:0 2px 12px rgba(0,0,0,.6)}
+.logo b{color:var(--cyan);font-weight:800}
+.logo svg{width:26px;height:26px}
+.nav{margin-left:auto;display:flex;gap:8px;align-items:center}
+.nb{background:rgba(15,23,42,.8);border:1px solid var(--line2);border-radius:7px;padding:7px 13px;font-weight:600;font-size:13px;cursor:pointer;backdrop-filter:blur(8px)}
+.nb:hover{border-color:var(--cyan)}
+.nb.on{background:linear-gradient(135deg,#38bdf8,#06b6d4);border-color:transparent;color:#03111f}
+.panel{position:fixed;top:64px;z-index:4;background:var(--glass);border:1px solid var(--line2);border-radius:14px;
+  backdrop-filter:blur(16px) saturate(1.2);-webkit-backdrop-filter:blur(16px) saturate(1.2);box-shadow:0 20px 60px rgba(0,0,0,.45);
+  padding:18px 18px 16px;overflow:auto;scrollbar-width:thin;scrollbar-color:rgba(148,163,184,.3) transparent}
+.left{left:18px;width:340px;bottom:18px}
+.left.wide{width:560px}
+.right{right:18px;width:350px;max-height:calc(100vh - 82px)}
+.hero{position:fixed;left:28px;top:84px;z-index:3;max-width:470px;text-shadow:0 2px 18px rgba(0,0,0,.8)}
+.hero h1{font:800 46px/1.05 var(--sans);letter-spacing:-.03em;margin:0 0 14px}.hero h1 b{color:var(--cyan)}
+.hero p{color:#cbd5e1;font-size:16px;margin:0 0 18px}
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.chip{font-size:12px;background:rgba(15,23,42,.75);border:1px solid var(--line2);border-radius:6px;padding:4px 9px;color:#cbd5e1;white-space:nowrap}
+h2{font:700 17px var(--sans);margin:0 0 14px;display:flex;align-items:center;gap:8px}
+h3{font:700 15px var(--sans);margin:0 0 8px}
+.lbl{display:block;font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--mute);margin-bottom:6px}
+.mute{color:var(--mute)}.mono{font-family:var(--mono)}
+.inp{width:100%;background:rgba(2,6,23,.55);border:1px solid var(--line2);border-radius:8px;padding:10px 12px;font-size:14px;outline:none}
+.inp:focus{border-color:var(--cyan);box-shadow:0 0 0 3px rgba(56,189,248,.18)}
+select.inp{cursor:pointer;appearance:auto}
+select.inp option,select.inp optgroup{background:#0f172a;color:var(--text)}
+input[type=date].inp{color-scheme:dark}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.fld{margin-bottom:12px;position:relative}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;background:linear-gradient(135deg,#38bdf8,#06b6d4);color:#03111f;border:0;border-radius:8px;padding:11px 16px;font-weight:700;font-size:14px;cursor:pointer;width:100%}
+.btn:hover{filter:brightness(1.08)}.btn:disabled{opacity:.45;cursor:not-allowed;filter:none}
+.btn.ghost{background:rgba(15,23,42,.6);color:var(--text);border:1px solid var(--line2)}.btn.ghost:hover{border-color:var(--cyan)}
+.btn.sm{width:auto;padding:6px 11px;font-size:12px}.btn.danger{background:transparent;border:1px solid var(--bad);color:var(--bad)}
+.swap{position:absolute;right:38px;top:-14px;width:30px;height:30px;border-radius:50%;background:#0f2742;border:1px solid var(--line2);color:var(--cyan);cursor:pointer;z-index:1;font-size:15px;line-height:1}
+.swap:hover{border-color:var(--cyan)}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.between{justify-content:space-between}
+.err{color:var(--bad);font-size:13px}.err:not(:empty){margin:8px 0}
+.seg{display:inline-flex;background:rgba(2,6,23,.5);border:1px solid var(--line);border-radius:8px;padding:3px;gap:2px}
+.seg button{background:none;border:0;border-radius:6px;padding:5px 10px;font-size:12px;font-weight:600;color:var(--mute);cursor:pointer}
+.seg button.on{background:rgba(56,189,248,.16);color:var(--cyan)}
+.legs{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:4px 0 12px}
+.legs button{background:rgba(2,6,23,.45);border:1px solid var(--line2);border-radius:8px;padding:7px 9px;text-align:left;cursor:pointer;font-size:12px}
+.legs button b{display:block;font-size:13px}.legs button.on{border-color:var(--cyan);background:rgba(56,189,248,.1)}
+.dates{display:flex;gap:6px;overflow-x:auto;margin:0 0 12px;padding-bottom:4px;scrollbar-width:none}
+.day{flex:0 0 auto;background:rgba(2,6,23,.45);border:1px solid var(--line);border-radius:8px;padding:5px 8px;text-align:center;cursor:pointer;min-width:64px}
+.day small{display:block;font-size:10px;color:var(--mute)}.day b{font-size:11px;font-weight:600}
+.day.on{border-color:var(--cyan);background:rgba(56,189,248,.12)}.day.cheap b{color:var(--ok)}.day.none{opacity:.4;cursor:default}
+.fc{background:var(--glass2);border:1px solid var(--line2);border-radius:12px;padding:13px 14px;margin-bottom:10px;cursor:pointer;transition:border-color .15s,transform .15s}
+.fc:hover{border-color:rgba(56,189,248,.6)}.fc.sel{border-color:var(--cyan);box-shadow:0 0 0 1px var(--cyan) inset}
+.fc.sold{opacity:.45;cursor:not-allowed}
+.fc .hd{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:start}
+.fc .al{font-weight:700;font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.fc .al small{font-weight:500;color:var(--mute);font-size:12px;margin-left:4px}
+.badge{display:inline-block;font-size:10px;font-weight:700;letter-spacing:.06em;padding:2px 7px;border-radius:5px;margin-top:4px}
+.badge.Business{background:rgba(168,85,247,.22);color:#d8b4fe}.badge.Economy{background:rgba(56,189,248,.16);color:#7dd3fc}
+.badge.warn{background:rgba(251,191,36,.16);color:var(--warn)}
+.price{font-weight:800;font-size:21px;color:var(--cyan);white-space:nowrap}
+.times{display:grid;grid-template-columns:auto 1fr auto;align-items:end;margin:9px 0 8px;gap:8px}
+.times b{font-size:16px}.times b sup{font-size:10px;color:var(--cyan)}.times small{display:block;color:var(--mute);font-size:12px}
+.times .mid{text-align:center;color:var(--mute);font-size:12px}
+.tags{display:flex;gap:6px;flex-wrap:wrap}.tags span{font-size:11px;background:rgba(2,6,23,.55);border:1px solid var(--line);border-radius:5px;padding:2px 7px;color:#cbd5e1}
+.left-ish{font-size:11px;color:var(--warn);font-weight:600}
+.tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:14px}
+.tabs button{background:rgba(2,6,23,.45);border:1px solid var(--line2);border-radius:8px;padding:8px 4px;font-size:13px;cursor:pointer;color:var(--mute)}
+.tabs button.on{border-color:var(--cyan);color:var(--text);background:rgba(56,189,248,.12)}
+.tabs button:disabled{opacity:.4;cursor:not-allowed}
+.paxs{display:flex;gap:6px;margin-bottom:10px}.paxs button{flex:1;background:rgba(2,6,23,.45);border:1px solid var(--line2);border-radius:7px;padding:5px;font-size:12px;cursor:pointer}
+.paxs button.on{border-color:var(--cyan);color:var(--cyan)}.paxs button.done:not(.on){color:var(--ok)}
+.sum{background:rgba(2,6,23,.4);border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin:12px 0}
+.sum div{display:flex;justify-content:space-between;gap:10px;padding:3px 0;font-size:13px}.sum div span:first-child{color:#cbd5e1}
+.sum .tot{border-top:1px solid var(--line);margin-top:6px;padding-top:9px;font-weight:800;font-size:17px;color:var(--cyan)}
+.sum .tot span:first-child{color:var(--cyan)}
+.seatwrap{max-height:340px;overflow:auto;border:1px solid var(--line);border-radius:10px;background:rgba(2,6,23,.35);margin:8px 0 10px}
+.seatgrid{display:grid;gap:4px;padding:10px;justify-content:center}
+.seatgrid .hd,.seatgrid .rn{font-size:9px;color:var(--dim);text-align:center;display:flex;align-items:center;justify-content:center}
+.seatgrid .sec{grid-column:1/-1;font-size:10px;letter-spacing:.12em;color:var(--mute);padding:4px 0 2px;text-transform:uppercase}
+.seat{width:var(--s);height:var(--s);border:1px solid var(--line2);border-radius:5px 5px 3px 3px;background:rgba(15,23,42,.9);font-size:9px;cursor:pointer;color:var(--mute);padding:0}
+.seat.biz{border-color:rgba(168,85,247,.6);color:#d8b4fe}
+.seat:hover:not(:disabled){border-color:var(--cyan);color:var(--text)}.seat:disabled{opacity:.15;cursor:not-allowed}
+.seat.on{background:var(--cyan);border-color:var(--cyan);color:#03111f;font-weight:700}
+.legend{display:flex;gap:12px;font-size:11px;color:var(--mute)}.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;border:1px solid var(--line2);margin-right:4px;vertical-align:-1px}
+.pms{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px}
+.pmt{display:flex;align-items:center;gap:8px;background:rgba(2,6,23,.45);border:1px solid var(--line2);border-radius:9px;padding:8px 9px;cursor:pointer;font-size:12.5px;font-weight:600;text-align:left}
+.pmt:hover{border-color:rgba(56,189,248,.6)}.pmt.on{border-color:var(--cyan);background:rgba(56,189,248,.12);box-shadow:0 0 0 1px var(--cyan) inset}
+.pmt.full{grid-column:1/-1}
+.logo-i{width:26px;height:18px;border-radius:4px;display:grid;place-items:center;font-size:11px;font-weight:800;flex:0 0 auto}
+.li-card{background:linear-gradient(135deg,#1e3a8a,#38bdf8);color:#fff}.li-kaspi{background:#f14635;color:#fff}.li-apple{background:#000;color:#fff;border:1px solid #475569;font-size:9px}
+.li-google{background:#fff;color:#4285f4}.li-cash{background:#14532d;color:#86efac}
+.cardbox{background:linear-gradient(135deg,rgba(30,58,138,.55),rgba(14,116,144,.35));border:1px solid var(--line2);border-radius:12px;padding:12px;margin-bottom:10px}
+.cardbox .brand{float:right;font-weight:800;font-size:13px;color:#bae6fd}
+.note{font-size:11.5px;color:var(--mute);background:rgba(2,6,23,.4);border:1px dashed var(--line2);border-radius:8px;padding:7px 9px;margin:8px 0}
+.paid{font-size:12px;color:#cbd5e1;margin-top:6px}.paid b{color:var(--ok)}.paid b.Pending{color:var(--warn)}.paid b.Refunded,.paid b.Cancelled{color:var(--mute)}
+.ptx{display:grid;grid-template-columns:1fr auto;gap:2px 10px;padding:8px 0;border-bottom:1px solid var(--line);font-size:13px}.ptx small{color:var(--mute);grid-column:1}
+.ptx .amt{grid-row:1/3;grid-column:2;text-align:right;font-weight:700}.ptx .amt small{display:block;font-weight:600}
+.promo{display:flex;align-items:center;gap:8px;background:rgba(52,211,153,.1);border:1px solid rgba(52,211,153,.45);border-radius:9px;padding:8px 10px;font-size:13px;margin-bottom:10px}
+.promo b{color:var(--ok);font-family:var(--mono);letter-spacing:.06em}.promo .x{margin-left:auto;background:none;border:0;color:var(--mute);cursor:pointer;font-size:14px}
+.sum .disc span{color:var(--ok)!important}
+.pc{background:var(--glass2);border:1px solid var(--line2);border-radius:12px;padding:12px 14px;margin-bottom:8px;display:grid;grid-template-columns:1fr auto;gap:4px 12px;align-items:center}
+.pc .code{font:600 15px var(--mono);letter-spacing:.08em;color:var(--cyan)}.pc .val{font-weight:800;font-size:18px;text-align:right}
+.pc small{color:var(--mute);font-size:12px;grid-column:1/-1}
+.st{font-size:10px;font-weight:700;letter-spacing:.06em;padding:2px 8px;border-radius:99px;border:1px solid;margin-left:6px;vertical-align:2px}
+.st.Active{color:var(--ok)}.st.Expired,.st.Scheduled{color:var(--mute)}.st.Used.up,.st.Used{color:var(--warn)}.st.Off{color:var(--bad)}
+.bar{height:5px;background:rgba(148,163,184,.2);border-radius:3px;overflow:hidden;grid-column:1/-1}.bar i{display:block;height:100%;background:var(--cyan)}
+.pnr{font:500 34px var(--mono);letter-spacing:.18em;color:var(--cyan);margin:4px 0 6px}
+.dest{display:grid;grid-template-columns:1fr auto;width:100%;text-align:left;background:none;border:0;border-bottom:1px solid var(--line);padding:9px 6px;cursor:pointer;border-radius:6px;gap:0 10px}
+.dest:hover,.dest.hot{background:rgba(56,189,248,.08)}.dest.hot b{color:var(--cyan)}
+.dest b{font-size:14px}.dest b small{color:var(--mute);font-weight:500;font-size:11px;margin-left:5px}
+.dest .m{grid-column:1;font-size:11px;color:var(--mute)}.dest .p{grid-row:1/3;grid-column:2;align-self:center;text-align:right;color:var(--cyan);font-weight:700;font-size:13px}
+.dest .p small{display:block;color:var(--mute);font-weight:500;font-size:10px}
+.region{font-size:10px;letter-spacing:.12em;color:var(--dim);text-transform:uppercase;margin:12px 0 2px}
+.bk{background:var(--glass2);border:1px solid var(--line2);border-radius:12px;padding:14px 16px;margin-bottom:10px;cursor:pointer}
+.bk:hover,.bk.hot{border-color:rgba(56,189,248,.6)}
+.bk .route{font-size:19px;font-weight:700;margin:4px 0}.bk.cancelled .route{text-decoration:line-through;color:var(--mute)}
+.pill{font-size:10px;font-weight:700;letter-spacing:.06em;padding:2px 8px;border-radius:99px;border:1px solid}
+.pill.CONFIRMED{color:var(--ok)}.pill.CANCELLED{color:var(--bad)}.pill.PENDING{color:var(--warn)}
+.ref{font:500 13px var(--mono);letter-spacing:.12em;color:var(--cyan)}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:14px 0}
+.stat{background:rgba(2,6,23,.45);border:1px solid var(--line);border-radius:10px;padding:10px}.stat b{display:block;font-size:20px;font-weight:800}.stat span{font-size:10px;color:var(--mute);text-transform:uppercase;letter-spacing:.08em}
+.avatar{width:46px;height:46px;border-radius:50%;background:linear-gradient(135deg,#38bdf8,#a855f7);display:grid;place-items:center;font-weight:800;font-size:18px;color:#03111f}
+.sec-card{background:rgba(2,6,23,.35);border:1px solid var(--line);border-radius:12px;padding:14px;margin-top:12px}
+.gctl{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);z-index:3;display:flex;gap:6px;align-items:center;transition:margin-left .4s}
+.gctl button{background:rgba(15,23,42,.75);border:1px solid var(--line2);border-radius:7px;padding:6px 10px;font-size:12px;font-weight:600;color:#cbd5e1;cursor:pointer;backdrop-filter:blur(8px)}
+.gctl button:hover{border-color:var(--cyan);color:var(--cyan)}
+.gctl span{font-size:11px;color:var(--mute);margin-left:6px;text-shadow:0 1px 6px #000}
+.toast{position:fixed;top:70px;left:50%;transform:translateX(-50%);background:rgba(15,23,42,.95);border:1px solid var(--cyan);padding:10px 18px;border-radius:9px;z-index:20;font-weight:600;box-shadow:0 10px 30px rgba(0,0,0,.5)}
+.modal{position:fixed;inset:0;background:rgba(1,3,10,.7);display:grid;place-items:center;z-index:15;padding:16px;backdrop-filter:blur(3px)}
+.modal .box{background:#0d1426;border:1px solid var(--line2);border-radius:14px;padding:20px;max-width:440px;width:100%;max-height:90vh;overflow:auto}
+.modal .box.wide{max-width:760px}
+.pass{display:grid;grid-template-columns:1fr 190px;background:linear-gradient(135deg,#0f1b33,#0b1426);border:1px solid var(--line2);border-radius:14px;overflow:hidden;margin-bottom:12px}
+.pass .m{padding:16px 18px}.pass .s{padding:16px;border-left:2px dashed var(--line2);background:rgba(56,189,248,.05)}
+.pass .big{display:flex;align-items:center;gap:14px;margin:8px 0 4px}.pass .big b{font:700 34px var(--sans)}
+.pass .big span{flex:1;border-top:2px dashed var(--line2);position:relative}.pass .big span:after{content:'✈';position:absolute;left:50%;top:-12px;color:var(--cyan)}
+.kv{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:12px}.kv b{display:block;font-size:15px}.s .kv{grid-template-columns:1fr 1fr;margin-top:0}
+.bars{height:40px;margin-top:12px;background:repeating-linear-gradient(90deg,#e2e8f0 0 2px,transparent 2px 4px,#e2e8f0 4px 5px,transparent 5px 9px);opacity:.8}
+.empty{text-align:center;padding:30px 10px;color:var(--mute)}.empty div{font-size:34px;margin-bottom:6px}
+.skel{height:110px;border-radius:12px;margin-bottom:10px;background:linear-gradient(90deg,rgba(30,41,59,.5),rgba(51,65,85,.6),rgba(30,41,59,.5));background-size:200% 100%;animation:sh 1.2s infinite}
+@keyframes sh{to{background-position:-200% 0}}
+@media(max-width:1100px){.left.wide{width:470px}.right{width:320px}.left{width:320px}.hero h1{font-size:36px}}
+@media(max-width:900px){
+  body{overflow:auto}.top{position:relative;background:rgba(1,3,10,.9);flex-wrap:wrap;height:auto;padding:10px 14px;gap:8px}
+  .nav{margin-left:0;width:100%;justify-content:space-between}.nb{flex:1;padding:7px 6px}
+  #space{position:fixed}#earth{position:relative;height:56vh;min-height:320px}
+  .panel{position:relative;top:auto;left:auto;right:auto;bottom:auto;width:auto!important;max-height:none;margin:12px}
+  .hero{position:relative;left:auto;top:auto;margin:12px 16px}.hero h1{font-size:30px}
+  .gctl{position:absolute;top:calc(56vh - 46px);bottom:auto}.gctl span{display:none}
+  .stats{grid-template-columns:1fr 1fr}.pass{grid-template-columns:1fr}.pass .s{border-left:0;border-top:2px dashed var(--line2)}.kv{grid-template-columns:1fr 1fr}
+}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+@media print{body{overflow:visible;background:#fff}#space,#earth,.top,.panel,.gctl,.noprint{display:none!important}.modal{position:static;background:none;backdrop-filter:none}.modal .box{border:0;max-height:none;background:#fff;color:#000}.pass{background:#fff;color:#000;border-color:#999}}
+</style>
+</head>
+<body>
+<canvas id="space" aria-hidden="true"></canvas>
+<header class="top">
+  <div class="logo" data-tab="flights" role="button" tabindex="0" aria-label="Samgau Globe home">
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z" fill="#38bdf8"/></svg>
+    <span><b>Samgau</b> Globe</span>
+  </div>
+  <nav class="nav" id="nav"></nav>
+</header>
+<div id="earth"></div>
+<div id="gctl" class="gctl"></div>
+<main id="app"></main>
+<div id="modal"></div>
+
+<script src="/globe.js"></script>
+<script src="/earth.js"></script>
+<script>
+/* =====================================================================
+   1. API — every call goes to the Express server (server.js)
+   ===================================================================== */
+let TOKEN = null;
+try { TOKEN = localStorage.getItem('sg_token'); } catch {}
+
+async function http(path, opt = {}) {
+  let r;
+  try {
+    r = await fetch('/api' + path, { ...opt,
+      headers: { 'Content-Type': 'application/json', ...(TOKEN ? { Authorization: 'Bearer ' + TOKEN } : {}) } });
+  } catch { throw new Error('Cannot reach the server. Is it running? (start.bat / npm start)'); }
+  const d = await r.json().catch(() => ({}));
+  if (r.status === 401 && TOKEN && path !== '/login') { signOut(); throw new Error('Your session expired — please sign in again'); }
+  if (!r.ok) throw new Error(d.error || 'Request failed (' + r.status + ')');
+  return d;
+}
+const send = (method, p, b) => http(p, { method, body: JSON.stringify(b || {}) });
+const api = {
+  config: () => http('/config'), airports: () => http('/airports'), routes: () => http('/routes'), methods: () => http('/payment-methods'),
+  login: b => send('POST', '/login', b), register: b => send('POST', '/register', b),
+  me: () => http('/me'), saveMe: b => send('PUT', '/me', b), password: b => send('POST', '/me/password', b),
+  flights: q => http('/flights?' + new URLSearchParams(q)), calendar: q => http('/flights/calendar?' + new URLSearchParams(q)),
+  seats: id => http(`/flights/${id}/seats`), book: b => send('POST', '/bookings', b),
+  bookings: () => http('/bookings'), cancel: ref => send('POST', `/bookings/${ref}/cancel`), payments: () => http('/payments'),
+  promoCheck: b => send('POST', '/promo/check', b), adminPromos: () => http('/admin/promos'), adminRedemptions: () => http('/admin/redemptions'),
+  adminCreate: b => send('POST', '/admin/promos', b), adminToggle: (code, active) => send('PATCH', `/admin/promos/${code}`, { active })
+};
+
+/* =====================================================================
+   2. STATE + HELPERS
+   ===================================================================== */
+const ymd = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+const addDays = (s, n) => { const d = new Date(s + 'T12:00'); d.setDate(d.getDate() + n); return ymd(d); };
+const TODAY = ymd(new Date());
+
+const S = {
+  user: null, tab: 'flights', cfg: { currency: '₸', bag_price_per_kg: 500, max_bag_kg: 40, max_passengers: 9 },
+  airports: [], routes: [], methods: [],
+  q: { from: 'NQZ', to: 'ALA', date: addDays(TODAY, 1), ret: '', pax: 1, cabin: 'Economy' },
+  searched: null, leg: 'out', res: { out: null, ret: null }, cal: { out: [], ret: [] }, loading: false, err: '',
+  sort: 'price',
+  sel: null, map: null, seats: [], step: 1, pi: 0, travelers: [], payment: null, done: null, busy: false,
+  bookings: null, bFilter: 'upcoming', reg: false, authErr: '', payments: null,
+  af: { a_fn: '', a_ln: '', a_ph: '', a_em: '', a_pw: '' },
+  promo: { input: '', applied: null, err: '', busy: false }, admin: { promos: null, red: null, err: '', form: { type: 'percent', valid_from: '', valid_until: '' } },          // sign-in / sign-up form values survive re-renders
+  card: { number: '', name: '', exp: '', cvc: '' }, kaspi: ''
+};
+
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const money = n => Math.round(Number(n) || 0).toLocaleString('ru-RU').replace(/ /g, ' ') + ' ' + S.cfg.currency;
+const port = c => S.airports.find(a => a.code === c) || { code: c, city: c };
+const city = c => port(c).city;
+const km = (a, b) => (port(a).latitude != null && port(b).latitude != null ? distanceKm(port(a), port(b)) : 0);
+const hm = m => (m >= 60 ? `${Math.floor(m / 60)}h ${String(m % 60).padStart(2, '0')}m` : `${m}m`);
+const niceDate = (s, o = { weekday: 'short', day: 'numeric', month: 'short' }) => new Date(s + 'T12:00').toLocaleDateString('en-GB', o);
+const daysUntil = iso => Math.ceil((new Date(iso) - new Date()) / 864e5);
+const field = (id, label, value = '', type = 'text', extra = '') =>
+  `<div class="fld"><label class="lbl" for="${id}">${label}</label><input class="inp" id="${id}" type="${type}" value="${esc(value)}" ${extra}></div>`;
+const legQ = (leg = S.leg) => leg === 'ret' ? { ...S.searched, from: S.searched.to, to: S.searched.from, date: S.searched.ret } : S.searched;
+const isMobile = () => innerWidth <= 900;
+const kindOf = name => (/card/i.test(name) ? 'card' : /kaspi/i.test(name) ? 'kaspi' : /cash/i.test(name) ? 'cash' : 'wallet');
+const methodOf = id => S.methods.find(m => m.payment_method_id === id) || {};
+const luhn = num => { let sum = 0; [...num].reverse().forEach((d, i) => { let n = +d; if (i % 2) { n *= 2; if (n > 9) n -= 9; } sum += n; }); return sum % 10 === 0; };
+const brandOf = n => (/^4/.test(n) ? 'VISA' : /^220[0-4]/.test(n) ? 'MIR' : /^(5[1-5]|2(2[2-9]|[3-6]\d|7[01]|720))/.test(n) ? 'MASTERCARD' : /^3[47]/.test(n) ? 'AMEX' : '');
+const ICON = { card: ['li-card', '▬'], kaspi: ['li-kaspi', 'K'], wallet: ['li-apple', 'Pay'], cash: ['li-cash', '₸'] };
+const methodIcon = m => { const k = kindOf(m.method_name); const [c, t] = /google/i.test(m.method_name) ? ['li-google', 'G'] : ICON[k]; return `<span class="logo-i ${c}" aria-hidden="true">${t}</span>`; };
+const payLine = p => !p ? '' : `<div class="paid">${p.status === 'Pending' ? '<b class="Pending">● Pay at airport</b>' : `<b class="${p.status}">● ${p.status}</b>`}
+  · ${esc(p.method_name || '')}${p.card_last4 ? ` ${esc(p.card_brand)} •••• ${esc(p.card_last4)}` : ''}${p.payer_phone ? ' · ' + esc(p.payer_phone) : ''}${p.auth_code && p.status === 'Paid' ? ` · auth <span class="mono">${esc(p.auth_code)}</span>` : ''}${p.promo_code ? ` · 🎟 <span class="mono">${esc(p.promo_code)}</span> −${money(p.discount)}` : ''}</div>`;
+function validatePayment() {
+  const k = kindOf(methodOf(S.payment).method_name || '');
+  if (!S.payment) return 'Choose a payment method.';
+  if (k === 'card') {
+    const n = S.card.number.replace(/\D/g, ''), m = S.card.exp.match(/^(\d{2})\/(\d{2})$/);
+    if (n.length < 13 || !luhn(n)) return 'Card number is not valid.';
+    if (S.card.name.trim().length < 2) return 'Enter the name on the card.';
+    if (!m || +m[1] < 1 || +m[1] > 12) return 'Expiry must look like MM/YY.';
+    if (new Date(2000 + +m[2], +m[1], 1) <= new Date()) return 'This card has expired.';
+    if (!/^\d{3,4}$/.test(S.card.cvc)) return 'CVC must be 3 or 4 digits.';
+  }
+  if (k === 'kaspi' && !/^\+?[\d\s()-]{7,20}$/.test(S.kaspi.trim())) return 'Enter the phone number linked to Kaspi.';
+  return '';
+}
+
+function toast(m) {
+  document.querySelectorAll('.toast').forEach(x => x.remove());
+  const t = document.createElement('div'); t.className = 'toast'; t.setAttribute('role', 'status'); t.textContent = m;
+  document.body.append(t); setTimeout(() => t.remove(), 3200);
+}
+function modal(html, wide) { $('#modal').innerHTML = html ? `<div class="modal" data-close="1"><div class="box ${wide ? 'wide' : ''}" role="dialog" aria-modal="true">${html}</div></div>` : ''; }
+
+/* =====================================================================
+   3. THE GLOBE — background Earth that follows whatever you're doing
+   ===================================================================== */
+let E = null;
+function initEarth() {
+  try { E = makeEarth($('#earth'), { onPick: globePick, onHover: globeHover, wheelNeedsCtrl: isMobile }); E.set({ airports: S.airports }); }
+  catch (err) { console.error('Globe could not start:', err); E = null; }        // the site still works without it
+}
+function globePick(code) {
+  if (!S.user) return;
+  if (S.tab !== 'flights') { S.tab = 'flights'; }
+  if (code === S.q.from) return render();
+  if (S.routes.some(r => r.from === S.q.from && r.to === code)) { S.q.to = code; return search({ ...S.q }); }
+  S.q.from = code; S.searched = null; resetBooking(); render(); E.flyToAirport(code);   // no direct flight: start from there
+}
+function globeHover(code) {
+  document.querySelectorAll('[data-dest]').forEach(el => el.classList.toggle('hot', el.dataset.dest === code));
+  if (S.tab === 'flights' && !S.searched && E) E.set({ hl: code && S.routes.some(r => r.from === S.q.from && r.to === code) ? { from: S.q.from, to: code } : null });
+}
+let lastScene = '';
+function scene() { try { sceneInner(); } catch (err) { console.error('Globe error:', err); } }
+function sceneInner() {
+  if (!E) return;
+  E.set({ airports: S.airports });
+  let key, apply;
+  if (!S.user) {
+    const routes = S.routes.filter(r => r.from === 'NQZ' || r.from === 'ALA');
+    key = 'auth'; apply = () => { E.set({ routes, origin: null, hl: null, visited: null, spin: true }); E.flyTo(55, 32, 1.05, 0); };
+    E.set({ routes, origin: null, hl: null, visited: null, spin: true });
+  } else if (S.tab === 'flights' && S.searched) {
+    const q = legQ();
+    E.set({ routes: [], origin: null, hl: { from: q.from, to: q.to }, visited: null, spin: false });
+    key = 'route' + q.from + q.to; apply = () => E.focusRoute(q.from, q.to);
+  } else if (S.tab === 'flights') {
+    E.set({ routes: S.routes.filter(r => r.from === S.q.from), origin: S.q.from, hl: null, visited: null, spin: false });
+    key = 'explore' + S.q.from;
+    apply = () => { const r = S.routes.filter(x => x.from === S.q.from), far = Math.max(0, ...r.map(x => km(S.q.from, x.to)));
+      E.flyToAirport(S.q.from, far > 6000 ? 1.05 : far > 2500 ? 1.5 : 2.2); };
+  } else {
+    const list = (S.bookings || []).filter(b => b.status !== 'CANCELLED');
+    const routes = [...new Map(list.map(b => [b.origin + b.destination, { from: b.origin, to: b.destination }])).values()];
+    const next = list.filter(b => !b.is_past).sort((a, b) => a.departure_iso.localeCompare(b.departure_iso))[0];
+    E.set({ routes, origin: null, visited: [...new Set(list.flatMap(b => [b.origin, b.destination]))],
+            hl: S.tab === 'bookings' && next ? { from: next.origin, to: next.destination } : null, spin: false });
+    key = S.tab + routes.length; apply = () => (S.tab === 'bookings' && next ? E.focusRoute(next.origin, next.destination) : E.flyTo(60, 38, 1.15));
+  }
+  const off = !isMobile() && S.user && S.tab !== 'flights' ? Math.min(310, (($('.panel.left') || {}).offsetWidth || 0) / 2 + 9) : 0;
+  if (E.setOffset) E.setOffset(off);
+  $('#gctl').style.marginLeft = off + 'px';
+  if (key !== lastScene) { lastScene = key; apply(); }
+}
+function globeControls() {
+  $('#gctl').innerHTML = S.user ? `<button data-g="kz">Kazakhstan</button><button data-g="world">World</button><button data-g="in" aria-label="Zoom in">+</button><button data-g="out" aria-label="Zoom out">−</button>
+  <span>Drag to rotate · scroll to zoom · click a city</span>` : '';
+}
+
+/* =====================================================================
+   4. ACTIONS
+   ===================================================================== */
+async function search(q = S.q) {
+  if (q.from === q.to) { S.err = 'Pick two different airports.'; return render(); }
+  if (q.ret && q.ret < q.date) { S.err = 'Return date must be after the departure date.'; return render(); }
+  S.q = { ...q }; S.searched = { ...q }; S.leg = 'out'; S.err = ''; S.loading = true;
+  S.res = { out: null, ret: null }; resetBooking(); render();
+  try {
+    const out = { from: q.from, to: q.to, date: q.date, cabin: q.cabin };
+    const back = q.ret ? { from: q.to, to: q.from, date: q.ret, cabin: q.cabin } : null;
+    const [a, b, c, d] = await Promise.all([api.flights(out), api.calendar(out), back ? api.flights(back) : null, back ? api.calendar(back) : null]);
+    S.res = { out: a, ret: c }; S.cal = { out: b, ret: d || [] };
+  } catch (e) { S.err = e.message; S.res = { out: [], ret: S.searched.ret ? [] : null }; }
+  S.loading = false; render();
+}
+async function changeDate(date) {
+  if (S.leg === 'ret') S.searched.ret = S.q.ret = date; else S.searched.date = S.q.date = date;
+  const q = legQ(); resetBooking(); S.res[S.leg] = null; render();
+  try { [S.res[S.leg], S.cal[S.leg]] = await Promise.all([api.flights(q), api.calendar(q)]); } catch (e) { S.err = e.message; S.res[S.leg] = []; }
+  render();
+}
+function resetBooking() { S.promo.applied = null; S.promo.err = ''; S.sel = null; S.map = null; S.seats = []; S.step = 1; S.pi = 0; S.travelers = []; S.done = null; S.busy = false; S.err = ''; }
+
+async function pickFlight(id) {
+  const f = (S.res[S.leg] || []).find(x => x.flight_id === id);
+  if (!f || f.seats_left < S.searched.pax || (S.done && S.sel && S.sel.flight_id === id)) return;
+  const keep = S.travelers.length === S.searched.pax ? S.travelers : null;     // keep names when switching flights
+  resetBooking(); S.sel = f; S.sel.leg = S.leg; S.kaspi = S.kaspi || S.user.phone || '';
+  S.travelers = keep ? keep.map(t => ({ ...t, baggage_kg: 0 })) : Array.from({ length: S.searched.pax }, (_, i) => i === 0
+    ? { first_name: S.user.first_name, last_name: S.user.last_name, email: S.user.email, phone: S.user.phone || '', document_number: S.user.document_number || '', baggage_kg: 0 }
+    : { first_name: '', last_name: '', email: '', phone: '', document_number: '', baggage_kg: 0 });
+  render();
+  api.seats(id).then(m => { S.map = m; if (S.sel && S.sel.flight_id === id) render(); }).catch(e => { S.err = e.message; render(); });
+  if (isMobile()) setTimeout(() => $('.right')?.scrollIntoView({ behavior: 'smooth' }), 50);
+}
+
+function validateTraveler(i) {
+  const t = S.travelers[i], n = S.travelers.length > 1 ? `Passenger ${i + 1}: ` : '';
+  if (!t.first_name.trim() || !t.last_name.trim()) return n + 'enter first and last name.';
+  if (t.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(t.email.trim())) return n + 'email looks wrong.';
+  if (t.phone && !/^\+?[\d\s()-]{7,20}$/.test(t.phone.trim())) return n + 'phone looks wrong.';
+  if (i === 0 && !t.email.trim()) return 'Add an email for passenger 1 — the ticket goes there.';
+  return '';
+}
+function goStep(n) {
+  S.err = '';
+  if (n >= 2) for (let i = 0; i < S.travelers.length; i++) { const e = validateTraveler(i); if (e) { S.err = e; S.pi = i; S.step = 1; return render(); } }
+  if (n >= 3 && S.seats.length !== S.travelers.length) { S.err = `Choose ${S.travelers.length} seat${S.travelers.length > 1 ? 's' : ''}.`; S.step = 2; return render(); }
+  S.step = n; render();
+}
+function toggleSeat(id) {
+  const s = S.map.seats.find(x => x.seat_id === id);
+  if (!s || s.status !== 'FREE' || s.class !== S.searched.cabin) return;
+  const i = S.seats.findIndex(x => x.seat_id === id);
+  if (i >= 0) S.seats.splice(i, 1); else { if (S.seats.length >= S.travelers.length) S.seats.shift(); S.seats.push(s); }
+  render();
+}
+const bagTotal = () => S.travelers.reduce((a, t) => a + (+t.baggage_kg || 0) * S.cfg.bag_price_per_kg, 0);
+const grandTotal = () => (S.sel ? S.sel.price * S.travelers.length : 0) + bagTotal();
+const promoOff = () => (S.promo.applied ? S.promo.applied.discount : 0);
+const toPay = () => grandTotal() - promoOff();
+// ask the server (fn_promo_check in PostgreSQL) whether the code works for this total
+async function applyPromo(code) {
+  code = String(code || '').trim().toUpperCase(); S.promo.input = code;
+  if (!code) { S.promo.err = 'Type a promo code first.'; return render(); }
+  S.promo.busy = true; S.promo.err = ''; render();
+  try { const r = await api.promoCheck({ code, total: grandTotal() }); S.promo.applied = { ...r, base: grandTotal() }; toast(`🎟 ${code} applied: −${money(r.discount)}`); }
+  catch (e) { S.promo.applied = null; S.promo.err = e.message; }
+  S.promo.busy = false; render();
+}
+
+async function confirmBooking() {
+  S.err = validatePayment(); if (S.err) return render();
+  S.busy = true; render();
+  const kind = kindOf(methodOf(S.payment).method_name || '');
+  try {
+    S.done = await api.book({ flight_id: S.sel.flight_id, payment_method_id: S.payment,
+      travelers: S.travelers.map((t, i) => ({ ...t, seat_id: S.seats[i].seat_id })),
+      payment: kind === 'card' ? { card: { ...S.card, number: S.card.number.replace(/\D/g, '') } } : kind === 'kaspi' ? { phone: S.kaspi } : {},
+      promo_code: S.promo.applied ? S.promo.applied.code : null });
+    S.promo = { input: '', applied: null, err: '', busy: false };
+    S.card = { number: '', name: S.card.name, exp: '', cvc: '' }; S.payments = null;   // forget card details right away
+    S.step = 4; S.bookings = null; toast('Booking confirmed · ' + S.done.booking_ref);
+    const leg = S.sel.leg; api.flights(legQ(leg)).then(f => { S.res[leg] = f; render(); }).catch(() => {});
+  } catch (e) {
+    S.err = e.message;
+    if (/promo code/i.test(e.message)) { S.promo.applied = null; S.promo.err = e.message; S.err = ''; }
+    if (/taken/i.test(e.message)) {
+      S.map = await api.seats(S.sel.flight_id).catch(() => S.map);
+      S.seats = S.seats.filter(s => S.map.seats.find(x => x.seat_id === s.seat_id)?.status === 'FREE'); S.step = 2;
+    }
+  }
+  S.busy = false; render();
+}
+function toReturn() { S.leg = 'ret'; const keep = S.travelers; resetBooking(); S.travelers = keep; render(); }
+function bookReturn() { const q = S.searched; search({ ...q, from: q.to, to: q.from, date: addDays(q.date, 7), ret: '' }); }
+
+async function loadBookings(force) {
+  if (S.bookings && !force) return;
+  try { S.bookings = await api.bookings(); } catch (e) { S.bookings = []; toast(e.message); }
+  render();
+}
+function askCancel(ref) {
+  const b = S.bookings.find(x => x.booking_ref === ref);
+  modal(`<h2>Cancel booking ${esc(ref)}?</h2><p class="mute">${esc(b.flight_number)} · ${esc(b.origin_city)} → ${esc(b.destination_city)} on ${niceDate(b.date)}.
+  All ${b.travelers.length} seat${b.travelers.length > 1 ? 's' : ''} will be released. ${b.payment && b.payment.status === 'Paid' ? `<b style="color:var(--ok)">${money(b.payment.amount)}</b> will be refunded to your ${esc(b.payment.method_name)}.` : ''} This cannot be undone.</p>
+  <div class="row" style="justify-content:flex-end;margin-top:16px"><button class="btn ghost sm" data-close="1">Keep it</button>
+  <button class="btn danger sm" data-docancel="${esc(ref)}">Cancel booking</button></div>`);
+}
+async function doCancel(ref) {
+  modal('');
+  try { const r = await api.cancel(ref); S.payments = null; toast('Booking ' + ref + ' cancelled' + (r.refunded ? ' · ' + money(r.refunded) + ' refunded' : '')); await loadBookings(true); } catch (e) { toast(e.message); }
+}
+function showPasses(ref) {
+  const b = S.bookings.find(x => x.booking_ref === ref); if (!b) return;
+  const board = t => { const [h, m] = t.split(':').map(Number), x = (h * 60 + m - 40 + 1440) % 1440; return `${String(Math.floor(x / 60)).padStart(2, '0')}:${String(x % 60).padStart(2, '0')}`; };
+  const d = daysUntil(b.departure_iso);
+  modal(`<div class="row between noprint" style="margin-bottom:12px"><h2 style="margin:0">Boarding passes · ${esc(ref)}</h2>
+  <div class="row"><button class="btn sm" onclick="print()">Print</button><button class="btn ghost sm" data-close="1">Close</button></div></div>
+  ${b.travelers.filter(t => t.status !== 'CANCELLED').map(t => `<div class="pass"><div class="m">
+    <div class="row between"><span class="lbl" style="margin:0">${esc(b.airline)} · Boarding pass</span><span class="left-ish">${d <= 0 ? 'TODAY' : d === 1 ? 'TOMORROW' : 'IN ' + d + ' DAYS'}</span></div>
+    <div class="big"><b>${b.origin}</b><span></span><b>${b.destination}</b></div>
+    <div class="row between mute" style="font-size:12px"><span>${esc(b.origin_city)}</span><span>${esc(b.destination_city)}</span></div>
+    <div class="kv"><div><span class="lbl">Passenger</span><b>${esc(t.first_name)} ${esc(t.last_name)}</b></div><div><span class="lbl">Flight</span><b>${esc(b.flight_number)}</b></div>
+    <div><span class="lbl">Date</span><b>${niceDate(b.date, { day: 'numeric', month: 'short' })}</b></div><div><span class="lbl">Departs</span><b>${b.departure_time}</b></div></div></div>
+    <div class="s"><div class="kv"><div><span class="lbl">Gate</span><b>${esc(b.gate_number || 'TBA')}</b></div><div><span class="lbl">Seat</span><b>${esc(t.seat || '—')}</b></div>
+    <div><span class="lbl">Boarding</span><b>${board(b.departure_time)}</b></div><div><span class="lbl">Class</span><b>${esc((t.class || '').slice(0, 3).toUpperCase())}</b></div></div>
+    <div class="bars" aria-hidden="true"></div><div class="ref" style="text-align:center;margin-top:6px">${esc(ref)}</div></div></div>`).join('')}`, true);
+}
+
+async function authSubmit() {
+  const v = id => (S.af[id] = ($('#' + id) || {}).value || '').trim();
+  const body = { email: v('a_em'), password: v('a_pw') };
+  if (S.reg) Object.assign(body, { first_name: v('a_fn'), last_name: v('a_ln'), phone: v('a_ph') });
+  S.authErr = ''; $('#a_go').disabled = true;
+  try {
+    const r = await (S.reg ? api.register(body) : api.login(body));
+    TOKEN = r.token; try { localStorage.setItem('sg_token', TOKEN); } catch {}
+    S.user = r.user;
+  } catch (e) {
+    S.authErr = e.message; render();
+    const bad = /password/i.test(e.message) ? 'a_pw' : /email/i.test(e.message) ? 'a_em' : /name/i.test(e.message) ? 'a_fn' : /phone/i.test(e.message) ? 'a_ph' : null;
+    if (bad && $('#' + bad)) $('#' + bad).focus();
+    return;
+  }
+  S.af = { a_fn: '', a_ln: '', a_ph: '', a_em: '', a_pw: '' };
+  try { await boot(); } catch (e) { console.error(e); render(); }      // signed in even if something else fails
+}
+function signOut() {
+  TOKEN = null; try { localStorage.removeItem('sg_token'); } catch {}
+  S.user = null; S.searched = null; S.bookings = null; S.payments = null; S.admin.promos = null; S.admin.red = null; S.promo = { input: '', applied: null, err: '', busy: false }; S.card = { number: '', name: '', exp: '', cvc: '' }; S.kaspi = ''; resetBooking(); S.tab = 'flights'; S.reg = false; S.authErr = ''; modal(''); render();
+}
+async function saveProfile() {
+  const v = id => $('#' + id).value;
+  try { const u = await api.saveMe({ first_name: v('p_fn'), last_name: v('p_ln'), phone: v('p_ph'), document_number: v('p_doc') });
+    S.user = { ...S.user, ...u }; toast('Profile saved'); render(); } catch (e) { $('#p_err').textContent = e.message; }
+}
+async function changePassword() {
+  const cur = $('#pw_cur').value, nw = $('#pw_new').value;
+  if (nw !== $('#pw_new2').value) return ($('#pw_err').textContent = 'New passwords do not match.');
+  try { await api.password({ current_password: cur, new_password: nw }); toast('Password changed'); render(); } catch (e) { $('#pw_err').textContent = e.message; }
+}
+
+/* =====================================================================
+   5. VIEWS
+   ===================================================================== */
+function airportOptions(v) {
+  const groups = {}; S.airports.forEach(a => (groups[a.region] = groups[a.region] || []).push(a));
+  return Object.entries(groups).map(([g, list]) => `<optgroup label="${esc(g)}">${list.map(a =>
+    `<option value="${a.code}" ${a.code === v ? 'selected' : ''}>${a.code} — ${esc(a.city)}</option>`).join('')}</optgroup>`).join('');
+}
+
+function authView() {
+  const reg = S.reg;
+  $('#app').innerHTML = `<div class="hero"><h1>See the world.<br><b>Book it</b> in a minute.</h1>
+  <p>Flights across Kazakhstan and to ${S.airports.filter(a => a.region !== 'Kazakhstan').length} world capitals — live seat maps, real-time availability, every booking stored in PostgreSQL.</p>
+  <div class="chips"><span class="chip">${S.airports.length} airports</span><span class="chip">23 airlines</span><span class="chip">Istanbul · London · Dubai · Tokyo · New York</span></div></div>
+  <form class="panel right" id="authform" novalidate style="top:84px">
+    <h2>${reg ? 'Create your account' : 'Sign in'}</h2>
+    ${reg ? `<div class="g2">${field('a_fn', 'First name', S.af.a_fn, 'text', 'autocomplete="given-name"')}${field('a_ln', 'Last name', S.af.a_ln, 'text', 'autocomplete="family-name"')}</div>
+      ${field('a_ph', 'Phone', S.af.a_ph, 'tel', 'placeholder="+7 700 000 00 00" autocomplete="tel"')}` : ''}
+    ${field('a_em', 'Email', S.af.a_em, 'email', 'autocomplete="email"')}
+    ${field('a_pw', 'Password', S.af.a_pw, 'password', `autocomplete="${reg ? 'new-password' : 'current-password'}" ${reg ? 'placeholder="8+ characters"' : ''}`)}
+    <div class="err" role="alert">${esc(S.authErr)}</div>
+    <button class="btn" id="a_go" type="submit">${reg ? 'Create account' : 'Sign in'}</button>
+    <p style="text-align:center;margin:12px 0 0"><a href="#" id="a_sw">${reg ? 'I already have an account' : 'Create an account'}</a></p>
+    ${reg ? '' : `<div class="sum" style="margin-bottom:0;font-size:12px">Demo: <span class="mono">aruzhan@gmail.com</span> / <span class="mono">demo1234</span> · <a href="#" id="a_demo">fill in</a></div>`}
+  </form>`;
+}
+
+function flightCard(f) {
+  const sold = f.seats_left < S.searched.pax, sel = S.sel && S.sel.flight_id === f.flight_id;
+  const off = f.day_offset > 0 ? `<sup>+${f.day_offset}</sup>` : f.day_offset < 0 ? `<sup>${f.day_offset}</sup>` : '';
+  return `<div class="fc ${sel ? 'sel' : ''} ${sold ? 'sold' : ''}" data-f="${f.flight_id}" ${sold ? 'aria-disabled="true"' : 'tabindex="0" role="button"'}>
+  <div class="hd"><div style="min-width:0"><div class="al">${esc(f.airline)}<small>${esc(f.flight_number)}</small></div>
+  <span class="badge ${f.cabin}">${f.cabin.toUpperCase()}</span>${f.status === 'Delayed' ? ' <span class="badge warn">DELAYED</span>' : ''}</div>
+  <div style="text-align:right"><div class="price">${money(f.price)}</div><div class="left-ish">${sold ? 'SOLD OUT' : f.seats_left <= 9 ? f.seats_left + ' seats left' : ''}</div></div></div>
+  <div class="times"><div><b>${f.departure_time}</b><small>${f.origin}</small></div><div class="mid">${f.duration}<br>→</div>
+  <div style="text-align:right"><b>${f.arrival_time}${off}</b><small>${f.destination}</small></div></div>
+  <div class="tags"><span>✈ ${esc(f.aircraft.manufacturer)} ${esc(f.aircraft.model)}</span><span>🧳 ${f.bag_allowance ? f.bag_allowance + ' kg' : 'hand only'}</span><span>Gate ${esc(f.gate.gate_number)}</span></div></div>`;
+}
+
+function resultsBlock() {
+  if (!S.searched) return '';
+  const q = legQ(), list = S.res[S.leg];
+  const legs = S.searched.ret ? `<div class="legs" role="tablist">
+    <button class="${S.leg === 'out' ? 'on' : ''}" data-leg="out"><span class="mute">Outbound</span><b>${S.searched.from} → ${S.searched.to}</b>${niceDate(S.searched.date)}</button>
+    <button class="${S.leg === 'ret' ? 'on' : ''}" data-leg="ret"><span class="mute">Return</span><b>${S.searched.to} → ${S.searched.from}</b>${niceDate(S.searched.ret)}</button></div>` : '';
+  if (S.loading || !list) return legs + '<div class="skel"></div><div class="skel"></div>';
+  const cal = S.cal[S.leg] || [], prices = cal.filter(d => d.min_price).map(d => d.min_price), low = Math.min(...prices);
+  const strip = cal.length ? `<div class="dates">${cal.map(d => { const none = !d.min_price || d.date < TODAY;
+    return `<div class="day ${d.date === q.date ? 'on' : ''} ${none ? 'none' : ''} ${d.min_price === low && prices.length > 1 ? 'cheap' : ''}" ${none ? '' : `data-date="${d.date}" role="button" tabindex="0"`}>
+      <small>${niceDate(d.date)}</small><b>${none ? '—' : money(d.min_price)}</b></div>`; }).join('')}</div>` : '';
+  const by = { price: (a, b) => a.price - b.price, depart: (a, b) => a.departure_time.localeCompare(b.departure_time), duration: (a, b) => a.minutes - b.minutes };
+  const sorted = [...list].sort(by[S.sort]);
+  return `${legs}<div class="row between" style="margin:2px 0 10px"><span class="mute">${list.length} flight${list.length === 1 ? '' : 's'} found</span>
+  <div class="seg">${['price', 'depart', 'duration'].map(k => `<button data-sort="${k}" class="${S.sort === k ? 'on' : ''}">${k[0].toUpperCase() + k.slice(1)}</button>`).join('')}</div></div>
+  ${strip}${sorted.length ? sorted.map(flightCard).join('') : `<div class="empty"><div>☁</div>No flights on ${niceDate(q.date)}.<br>Try another day above${S.routes.some(r => r.from === q.from && r.to === q.to) ? '' : ' — there is no direct route between these cities'}.</div>`}`;
+}
+
+function searchPanel() {
+  const q = S.q;
+  return `<section class="panel left" aria-label="Search flights"><h2>🔍 Search Flights</h2>
+  <form id="searchform">
+    <div class="fld"><label class="lbl" for="from">From</label><select class="inp" id="from">${airportOptions(q.from)}</select></div>
+    <div class="fld"><button type="button" class="swap" id="swap" aria-label="Swap airports" title="Swap">⇅</button>
+      <label class="lbl" for="to">To</label><select class="inp" id="to">${airportOptions(q.to)}</select></div>
+    <div class="g2"><div class="fld"><label class="lbl" for="date">Depart</label><input class="inp" type="date" id="date" min="${TODAY}" value="${q.date}"></div>
+      <div class="fld"><label class="lbl" for="ret">Return (opt)</label><input class="inp" type="date" id="ret" min="${q.date}" value="${q.ret}"></div></div>
+    <div class="g2"><div class="fld"><label class="lbl" for="pax">Passengers</label><select class="inp" id="pax">${Array.from({ length: S.cfg.max_passengers }, (_, i) => `<option ${i + 1 === q.pax ? 'selected' : ''}>${i + 1}</option>`).join('')}</select></div>
+      <div class="fld"><label class="lbl" for="cabin">Class</label><select class="inp" id="cabin">${['Economy', 'Business'].map(c => `<option ${c === q.cabin ? 'selected' : ''}>${c}</option>`).join('')}</select></div></div>
+    <div class="err" role="alert">${esc(S.err && !S.sel ? S.err : '')}</div>
+    <button class="btn" type="submit">Search Flights</button>
+  </form><div style="margin-top:16px">${resultsBlock()}</div></section>`;
+}
+
+function seatMap() {
+  const m = S.map; if (!m) return '<div class="skel" style="height:200px"></div>';
+  const L = m.seat_letters.split(''), aisles = { 4: [2], 6: [3], 7: [2, 5], 8: [2, 6], 9: [3, 6], 10: [3, 7] }[L.length] || [Math.ceil(L.length / 2)];
+  const size = Math.max(19, Math.min(28, Math.floor((300 - 26 - aisles.length * 12) / L.length) - 4));
+  const cols = ['18px'], head = ['<span></span>'];
+  L.forEach((l, i) => { if (aisles.includes(i)) { cols.push('10px'); head.push('<span></span>'); } cols.push(size + 'px'); head.push(`<span class="hd">${l}</span>`); });
+  const rows = {}; m.seats.forEach(s => (rows[s.row] = rows[s.row] || {})[s.letter] = s);
+  let html = '', last = '';
+  Object.keys(rows).map(Number).sort((a, b) => a - b).forEach(r => {
+    const cls = Object.values(rows[r])[0].class;
+    if (cls !== last) { html += `<div class="sec">${cls}</div>`; last = cls; }
+    html += `<span class="rn">${r}</span>` + L.map((l, i) => {
+      const s = rows[r][l], gap = aisles.includes(i) ? '<span></span>' : '';
+      if (!s) return gap + '<span></span>';
+      const on = S.seats.some(x => x.seat_id === s.seat_id), off = s.status !== 'FREE' || s.class !== S.searched.cabin;
+      return gap + `<button class="seat ${s.class === 'Business' ? 'biz' : ''} ${on ? 'on' : ''}" data-seat="${s.seat_id}" ${off ? 'disabled' : ''}
+        aria-label="Seat ${s.seat_number} ${s.class} ${s.status === 'FREE' ? 'free' : 'taken'}" title="${s.seat_number} · ${s.class}">${on ? s.seat_number : l}</button>`;
+    }).join('');
+  });
+  return `<div class="legend"><span><i></i>Free</span><span><i style="background:var(--cyan);border-color:var(--cyan)"></i>Yours</span><span><i style="opacity:.3"></i>Taken / other class</span></div>
+  <div class="seatwrap"><div class="seatgrid" style="--s:${size}px;grid-template-columns:${cols.join(' ')}">${head.join('')}${html}</div></div>`;
+}
+
+function paymentFields() {
+  const m = methodOf(S.payment), k = kindOf(m.method_name || '');
+  if (k === 'card') { const b = brandOf(S.card.number.replace(/\D/g, ''));
+    return `<div class="cardbox"><span class="brand" id="cbrand">${b}</span><span class="lbl">Card details</span>
+    <div class="fld"><label class="lbl" for="c_number">Card number</label><input class="inp mono" id="c_number" data-card="number" inputmode="numeric" autocomplete="cc-number" placeholder="1234 5678 9012 3456" maxlength="23" value="${esc(S.card.number)}"></div>
+    <div class="fld"><label class="lbl" for="c_name">Name on card</label><input class="inp" id="c_name" data-card="name" autocomplete="cc-name" placeholder="ARUZHAN OSPAN" value="${esc(S.card.name)}"></div>
+    <div class="g2"><div class="fld" style="margin:0"><label class="lbl" for="c_exp">Expiry</label><input class="inp mono" id="c_exp" data-card="exp" inputmode="numeric" autocomplete="cc-exp" placeholder="MM/YY" maxlength="5" value="${esc(S.card.exp)}"></div>
+    <div class="fld" style="margin:0"><label class="lbl" for="c_cvc">CVC</label><input class="inp mono" id="c_cvc" data-card="cvc" inputmode="numeric" autocomplete="cc-csc" placeholder="123" maxlength="4" type="password" value="${esc(S.card.cvc)}"></div></div></div>`; }
+  if (k === 'kaspi') return `<div class="cardbox" style="background:rgba(241,70,53,.12)"><div class="fld" style="margin:0"><label class="lbl" for="k_phone">Kaspi phone number</label>
+    <input class="inp" id="k_phone" type="tel" placeholder="+7 7__ ___ __ __" value="${esc(S.kaspi)}"></div>
+    <p class="mute" style="font-size:12px;margin:6px 0 0">We send a payment request to your Kaspi.kz app and confirm it instantly.</p></div>`;
+  if (k === 'cash') return `<div class="note" style="border-style:solid">💵 Your seats are held now. Pay the total at the ${esc(S.sel ? S.sel.airline : '')} desk before check-in. The booking shows as <b style="color:var(--warn)">Pending</b> until then.</div>`;
+  return `<div class="note" style="border-style:solid">${esc(m.method_name || '')}: you confirm the payment with one tap, no card details needed here.</div>`;
+}
+
+function summaryBox() {
+  const f = S.sel, n = S.travelers.length;
+  return `<div class="sum"><div><span>${esc(f.airline)} ${esc(f.flight_number)}</span><span>${f.origin} → ${f.destination}</span></div>
+  <div><span>Date</span><span>${niceDate(legQ(f.leg).date)} · ${f.departure_time}</span></div>
+  <div><span>Class</span><span>${f.cabin}</span></div><div><span>Aircraft</span><span>${esc(f.aircraft.manufacturer)} ${esc(f.aircraft.model)}</span></div>
+  <div><span>Baggage allowance</span><span>${f.bag_allowance ? f.bag_allowance + ' kg' : 'Hand luggage'}</span></div>
+  <div><span>Est. Gate</span><span>${esc(f.gate.gate_number)}</span></div>
+  <div><span>Fare × ${n}</span><span>${money(f.price * n)}</span></div>
+  ${bagTotal() ? `<div><span>Extra baggage</span><span>${money(bagTotal())}</span></div>` : ''}
+  ${S.seats.length ? `<div><span>Seats</span><span>${S.seats.map(s => s.seat_number).join(', ')}</span></div>` : ''}
+  ${(() => { const code = S.done ? S.done.promo_code : S.promo.applied && S.promo.applied.code, off = S.done ? S.done.discount : promoOff();
+     return code ? `<div class="disc"><span>Promo ${esc(code)}</span><span>−${money(off)}</span></div>` : ''; })()}
+  <div class="tot"><span>${S.done ? 'Paid' : 'Total'}</span><span>${money(S.done ? (S.done.paid ?? S.done.total) : toPay())}</span></div></div>`;
+}
+
+function bookingPanel() {
+  const f = S.sel, n = S.travelers.length;
+  if (S.step === 4 && S.done) {
+    const canRet = S.searched.ret && f.leg === 'out';
+    const pending = S.done.payment && S.done.payment.status === 'Pending';
+    return `<section class="panel right"><h2>${pending ? '🕒 Seats reserved' : '✅ Payment successful'}</h2><span class="lbl">Booking reference</span><div class="pnr">${esc(S.done.booking_ref)}</div>
+    <p class="mute" style="margin-top:0">${S.done.items.length} ticket${S.done.items.length > 1 ? 's' : ''} · seat${S.done.items.length > 1 ? 's' : ''} ${S.done.items.map(i => i.seat).join(', ')}. Saved in your bookings.</p>
+    ${payLine({ ...S.done.payment, method_name: S.done.payment && S.done.payment.method, promo_code: S.done.promo_code, discount: S.done.discount })}
+    ${summaryBox()}<div style="display:grid;gap:8px">${canRet ? `<button class="btn" id="toret">Choose your return flight →</button>` : ''}
+    <button class="btn ${canRet ? 'ghost' : ''}" data-tab="bookings">View in My Bookings</button>
+    ${canRet ? '' : `<button class="btn ghost" id="bookret">Book return · ${esc(city(f.destination))} → ${esc(city(f.origin))}</button>`}</div></section>`;
+  }
+  const tabs = `<div class="tabs" role="tablist">${['Passenger', 'Seat', 'Confirm'].map((t, i) => `<button class="${S.step === i + 1 ? 'on' : ''}" data-step="${i + 1}">${t}</button>`).join('')}</div>`;
+  let body = '';
+  if (S.step === 1) {
+    const i = S.pi, t = S.travelers[i];
+    body = `${n > 1 ? `<div class="paxs">${S.travelers.map((x, j) => `<button class="${j === i ? 'on' : ''} ${x.first_name && x.last_name ? 'done' : ''}" data-pi="${j}">Passenger ${j + 1}</button>`).join('')}</div>` : ''}
+    <div class="g2">${field('t_first_name', 'First name', t.first_name, 'text', 'data-k="first_name" autocomplete="given-name"')}${field('t_last_name', 'Last name', t.last_name, 'text', 'data-k="last_name" autocomplete="family-name"')}</div>
+    ${field('t_email', 'Email' + (i ? ' (optional)' : ''), t.email, 'email', 'data-k="email"')}
+    <div class="g2">${field('t_document_number', 'Passport / ID', t.document_number, 'text', 'data-k="document_number"')}${field('t_phone', 'Phone' + (i ? ' (opt)' : ''), t.phone, 'tel', 'data-k="phone"')}</div>
+    ${summaryBox()}<div class="err" role="alert">${esc(S.err)}</div>
+    ${i < n - 1 ? `<button class="btn" data-pi="${i + 1}" data-check="1">Next passenger →</button>` : `<button class="btn" data-step="2">Continue to Seat Selection</button>`}`;
+  } else if (S.step === 2) {
+    body = `<div class="row between" style="margin-bottom:4px"><b>Choose ${n} seat${n > 1 ? 's' : ''} · ${S.searched.cabin}</b><span class="mute">${S.seats.length}/${n}</span></div>${seatMap()}
+    <div class="err" role="alert">${esc(S.err)}</div><button class="btn" data-step="3" ${S.seats.length === n ? '' : 'disabled'}>Continue to Confirm</button>`;
+  } else {
+    const kgs = [0, 10, 15, 20, 23, 32].filter(k => k <= S.cfg.max_bag_kg);
+    body = `<span class="lbl">Extra checked baggage</span>${S.travelers.map((t, i) => `<div class="row between" style="margin-bottom:6px;flex-wrap:nowrap">
+      <span style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(t.first_name)} · ${S.seats[i] ? S.seats[i].seat_number : ''}</span>
+      <select class="inp" style="width:auto;padding:6px 8px" data-bag="${i}" aria-label="Extra bag for ${esc(t.first_name)}">${kgs.map(k => `<option value="${k}" ${+t.baggage_kg === k ? 'selected' : ''}>${k ? '+' + k + ' kg · ' + money(k * S.cfg.bag_price_per_kg) : 'None'}</option>`).join('')}</select></div>`).join('')}
+    <span class="lbl" style="margin-top:12px">Payment method</span>
+    <div class="pms" role="radiogroup" aria-label="Payment method">${S.methods.map((m, i) => `<button type="button" role="radio" aria-checked="${S.payment === m.payment_method_id}"
+      class="pmt ${S.payment === m.payment_method_id ? 'on' : ''} ${i === S.methods.length - 1 && S.methods.length % 2 ? 'full' : ''}" data-pm="${m.payment_method_id}">${methodIcon(m)}${esc(m.method_name)}</button>`).join('')}</div>
+    ${paymentFields()}
+    <span class="lbl" style="margin-top:4px">Promo code</span>
+    ${S.promo.applied ? `<div class="promo">🎟 <span><b>${esc(S.promo.applied.code)}</b> · ${esc(S.promo.applied.message)}</span><span style="font-weight:700;color:var(--ok);white-space:nowrap">−${money(S.promo.applied.discount)}</span>
+      <button class="x" id="promo_x" aria-label="Remove promo code">✕</button></div>`
+    : `<div class="row" style="flex-wrap:nowrap;margin-bottom:4px"><input class="inp mono" id="promo_in" placeholder="e.g. STUDENT10" autocomplete="off" value="${esc(S.promo.input)}" style="text-transform:uppercase">
+      <button class="btn sm" id="promo_go" style="padding:10px 14px" ${S.promo.busy ? 'disabled' : ''}>${S.promo.busy ? '…' : 'Apply'}</button></div><div class="err" role="alert">${esc(S.promo.err)}</div>`}
+    ${summaryBox()}<div class="err" role="alert">${esc(S.err)}</div>
+    <button class="btn" id="conf" ${S.busy ? 'disabled' : ''}>${S.busy ? 'Processing payment…' : kindOf(methodOf(S.payment).method_name || '') === 'cash' ? 'Reserve · pay ' + money(toPay()) + ' at airport' : 'Pay ' + money(toPay())}</button>
+    <div class="note">🔒 Demo checkout: no real money is charged and only the last 4 card digits are saved. Test card <span class="mono">4242 4242 4242 4242</span>, any future date, any CVC.</div>`;
+  }
+  return `<section class="panel right" aria-label="Booking"><div class="row between"><h2 style="margin-bottom:12px">Book ${esc(f.flight_number)}</h2>
+  <button class="btn ghost sm" id="closebk" aria-label="Close booking" style="margin-top:-12px">✕</button></div>${tabs}${body}</section>`;
+}
+
+function sidePanel() {
+  if (S.sel) return bookingPanel();
+  if (S.searched) {
+    const q = legQ(), r = S.routes.find(x => x.from === q.from && x.to === q.to);
+    return `<section class="panel right"><span class="lbl">Your route</span><h2 style="font-size:20px;margin-bottom:10px">${esc(city(q.from))} → ${esc(city(q.to))}</h2>
+    <div class="sum" style="margin-top:0"><div><span>Distance</span><span>${km(q.from, q.to).toLocaleString('en')} km</span></div>
+    <div><span>Flight time</span><span>${r ? hm(r.minutes) : '—'}</span></div><div><span>Flights / week</span><span>${r ? r.flights_week : '—'}</span></div>
+    <div><span>Airlines</span><span style="text-align:right">${r ? r.airlines.map(esc).join(', ') : 'No direct flights'}</span></div>
+    <div class="tot"><span>Economy from</span><span>${r ? money(r.min_price) : '—'}</span></div></div>
+    <p class="mute" style="margin:0 0 10px">Pick a flight on the left to choose seats and book.</p>
+    <button class="btn ghost" id="explore">← Explore all destinations</button></section>`;
+  }
+  const from = S.q.from, list = S.routes.filter(r => r.from === from), groups = {};
+  list.forEach(r => { const g = port(r.to).region || 'Other'; (groups[g] = groups[g] || []).push(r); });
+  return `<section class="panel right" aria-label="Destinations"><span class="lbl">Flying from</span><h2 style="font-size:20px;margin-bottom:4px">${esc(city(from))} <span class="mute" style="font-weight:500;font-size:13px">${from}</span></h2>
+  <p class="mute" style="margin:0 0 4px">${list.length} nonstop destinations · cheapest fares in the next 30 days. Hover to preview, click to search.</p>
+  ${Object.entries(groups).map(([g, rs]) => `<div class="region">${esc(g)}</div>${rs.sort((a, b) => a.min_price - b.min_price).map(r => `<button class="dest" data-dest="${r.to}">
+    <b>${esc(city(r.to))}<small>${r.to}</small></b><span class="m">${hm(r.minutes)} · ${km(from, r.to).toLocaleString('en')} km · ${r.flights_week}/week</span>
+    <span class="p"><small>from</small>${money(r.min_price)}</span></button>`).join('')}`).join('') || '<p class="mute">No flights from here in the next 30 days.</p>'}</section>`;
+}
+
+function bookingCard(b) {
+  const can = b.status !== 'CANCELLED' && !b.is_past;
+  return `<div class="bk ${b.status === 'CANCELLED' ? 'cancelled' : ''}" data-bkr="${esc(b.booking_ref)}" data-o="${b.origin}" data-d="${b.destination}">
+  <div class="row between"><div class="row"><span class="ref">${esc(b.booking_ref)}</span><span class="pill ${b.status}">${b.status}</span>
+  ${b.flight_status === 'Delayed' && !b.is_past ? '<span class="badge warn">DELAYED</span>' : ''}</div><span class="price" style="font-size:17px">${money(b.total)}</span></div>
+  <div class="route">${esc(b.origin_city)} → ${esc(b.destination_city)}</div>
+  <div class="mute" style="font-size:12px">${niceDate(b.date, { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })} · ${b.departure_time} → ${b.arrival_time}${b.arrival_date !== b.date ? ' (' + niceDate(b.arrival_date, { day: 'numeric', month: 'short' }) + ')' : ''} · ${esc(b.airline)} ${esc(b.flight_number)} · ${esc(b.manufacturer)} ${esc(b.model)} · Gate ${esc(b.gate_number || 'TBA')}</div>
+  ${payLine(b.payment)}
+  <div class="tags" style="margin-top:8px">${b.travelers.map(t => `<span>${esc(t.first_name)} ${esc(t.last_name)} · ${esc(t.seat || '—')} ${esc(t.class || '')}${t.baggage_kg ? ' · 🧳 ' + t.baggage_kg + ' kg' : ''}</span>`).join('')}</div>
+  ${can ? `<div class="row" style="margin-top:10px"><button class="btn sm" data-pass="${esc(b.booking_ref)}">Boarding pass</button><button class="btn sm danger" data-cancel="${esc(b.booking_ref)}">Cancel</button></div>` : ''}</div>`;
+}
+
+function bookingsView() {
+  if (!S.bookings) { loadBookings(); $('#app').innerHTML = `<section class="panel left wide"><h2>🎫 My Bookings</h2><div class="skel"></div><div class="skel"></div></section>`; return; }
+  const g = { upcoming: S.bookings.filter(b => !b.is_past && b.status !== 'CANCELLED').reverse(), past: S.bookings.filter(b => b.is_past && b.status !== 'CANCELLED'),
+    cancelled: S.bookings.filter(b => b.status === 'CANCELLED'), all: S.bookings };
+  const list = g[S.bFilter];
+  $('#app').innerHTML = `<section class="panel left wide" aria-label="My bookings"><div class="row between" style="margin-bottom:12px"><h2 style="margin:0">🎫 My Bookings</h2>
+  <div class="seg">${Object.keys(g).map(k => `<button data-bf="${k}" class="${S.bFilter === k ? 'on' : ''}">${k[0].toUpperCase() + k.slice(1)} ${g[k].length}</button>`).join('')}</div></div>
+  <p class="mute" style="margin:0 0 12px;font-size:12px">Hover a booking to see its route on the globe.</p>
+  ${list.length ? list.map(bookingCard).join('') : `<div class="empty"><div>🧳</div>No ${S.bFilter === 'all' ? '' : S.bFilter} bookings yet.<br><br><button class="btn sm" data-tab="flights">Search flights</button></div>`}</section>`;
+}
+
+function accountView() {
+  const u = S.user, st = u.stats || {}, flown = (S.bookings || []).filter(b => b.status !== 'CANCELLED');
+  const cities = new Set(flown.flatMap(b => [b.origin, b.destination])).size, dist = flown.reduce((a, b) => a + km(b.origin, b.destination), 0);
+  $('#app').innerHTML = `<section class="panel left wide" aria-label="My account">
+  <div class="row"><div class="avatar">${esc((u.first_name || '?')[0])}</div><div><h2 style="margin:0">${esc(u.first_name)} ${esc(u.last_name)}</h2>
+  <span class="mute" style="font-size:12px">${esc(u.email)} · member since ${esc(u.member_since || '')}</span></div>
+  <button class="btn danger sm" data-signout="1" style="margin-left:auto">Sign out</button></div>
+  <div class="stats"><div class="stat"><b>${st.upcoming ?? 0}</b><span>Upcoming</span></div><div class="stat"><b>${st.completed ?? 0}</b><span>Flown</span></div>
+  <div class="stat"><b>${cities}</b><span>Cities</span></div><div class="stat"><b>${dist.toLocaleString('en')}</b><span>km booked</span></div></div>
+  <p class="mute" style="font-size:12px;margin:-4px 0 0">Your routes and cities are lit up on the globe. Total spent: <b style="color:var(--cyan)">${money(st.spent)}</b></p>
+  <div class="sec-card"><h3>Personal details</h3><div class="g2">${field('p_fn', 'First name', u.first_name)}${field('p_ln', 'Last name', u.last_name)}</div>
+  <div class="g2">${field('p_ph', 'Phone', u.phone || '', 'tel')}${field('p_doc', 'Passport / ID', u.document_number || '')}</div>
+  <div class="err" id="p_err" role="alert"></div><button class="btn sm" id="saveprof">Save changes</button></div>
+  <div class="sec-card"><h3>Payment history</h3>${!S.payments ? '<div class="skel" style="height:60px"></div>' : S.payments.length ? S.payments.map(p => `<div class="ptx">
+    <span><b>${esc(p.route || p.booking_ref)}</b> · <span class="ref">${esc(p.booking_ref)}</span></span>
+    <small>${esc(p.created)} · ${esc(p.method_name || '')}${p.card_last4 ? ' ' + esc(p.card_brand) + ' •••• ' + esc(p.card_last4) : ''}${p.payer_phone ? ' · ' + esc(p.payer_phone) : ''}</small>
+${p.promo_code ? `<small>🎟 ${esc(p.promo_code)} saved ${money(p.discount)}</small>` : ''}
+    <span class="amt">${p.status === 'Refunded' ? '−' : ''}${money(p.amount)}<small class="paid"><b class="${p.status}">${p.status === 'Pending' ? 'Pay at airport' : p.status}</b></small></span></div>`).join('') : '<p class="mute" style="margin:0">No payments yet.</p>'}</div>
+  <div class="sec-card"><h3>Change password</h3>${field('pw_cur', 'Current password', '', 'password', 'autocomplete="current-password"')}
+  <div class="g2">${field('pw_new', 'New password', '', 'password', 'autocomplete="new-password" placeholder="8+ characters"')}${field('pw_new2', 'Repeat', '', 'password', 'autocomplete="new-password"')}</div>
+  <div class="err" id="pw_err" role="alert"></div><button class="btn ghost sm" id="savepw">Update password</button></div></section>`;
+  if (!S.bookings) loadBookings();
+  if (!S.payments) api.payments().then(p => { S.payments = p; if (S.tab === 'account') accountView(); }).catch(() => { S.payments = []; });
+  const tok = TOKEN;
+  api.me().then(m => { if (TOKEN !== tok || !S.user) return; if (JSON.stringify(m.stats) !== JSON.stringify(S.user.stats)) { S.user = { ...S.user, ...m }; if (S.tab === 'account') accountView(); } }).catch(() => {});
+}
+
+function adminView() {
+  const A = S.admin, F = A.form;
+  if (!A.promos) { api.adminPromos().then(p => { A.promos = p; render(); }).catch(e => { A.promos = []; A.err = e.message; render(); });
+    api.adminRedemptions().then(r => { A.red = r; render(); }).catch(() => { A.red = []; }); }
+  const today = TODAY, inMonth = addDays(TODAY, 30);
+  const val = p => (p.discount_percent ? p.discount_percent + '%' : money(p.discount_amount));
+  $('#app').innerHTML = `<section class="panel left wide" aria-label="Admin"><h2>🛠 Admin · Promo codes</h2>
+  <p class="mute" style="margin:-6px 0 12px;font-size:12px">Codes are rows in the <span class="mono">PROMO_CODE</span> table. Create them here, or with an INSERT in pgAdmin (see <span class="mono">db/promo_codes.sql</span>). Every check is done by the database function <span class="mono">fn_promo_check()</span>.</p>
+  <div class="sec-card" style="margin-top:0"><h3>➕ Add a new code</h3>
+    <div class="g2">${field('pc_code', 'Code', F.code || '', 'text', 'placeholder="NEWYEAR25" style="text-transform:uppercase" maxlength="20"')}${field('pc_desc', 'Description', F.desc || '', 'text', 'placeholder="New Year sale: 25% off"')}</div>
+    <div class="g2"><div class="fld"><label class="lbl" for="pc_type">Discount type</label><select class="inp" id="pc_type">
+      <option value="percent" ${F.type === 'percent' ? 'selected' : ''}>Percent (%)</option><option value="amount" ${F.type === 'amount' ? 'selected' : ''}>Fixed amount (₸)</option></select></div>
+      ${field('pc_value', F.type === 'percent' ? 'Percent off (1–90)' : 'Amount off (₸)', F.value || '', 'number', 'min="1"')}</div>
+    <div class="g2">${field('pc_from', 'Valid from', F.valid_from || today, 'date')}${field('pc_until', 'Valid until (expiry)', F.valid_until || inMonth, 'date')}</div>
+    <div class="g2">${field('pc_max', 'Usage limit (empty = unlimited)', F.max ?? '100', 'number', 'min="1"')}${field('pc_per', 'Uses per customer', F.per || '1', 'number', 'min="1"')}</div>
+    ${field('pc_min', 'Minimum booking total (₸)', F.min || '0', 'number', 'min="0"')}
+    <div class="err" role="alert">${esc(A.err)}</div><button class="btn" id="pc_create">Create promo code</button></div>
+  <h3 style="margin-top:16px">All codes</h3>
+  ${!A.promos ? '<div class="skel"></div>' : A.promos.map(p => `<div class="pc">
+    <div><span class="code">${esc(p.code)}</span><span class="st ${p.state}">${p.state.toUpperCase()}</span></div><div class="val">−${val(p)}</div>
+    <small>${esc(p.description || '')}</small>
+    <small>${p.valid_from} → <b>${p.valid_until}</b> · used <b>${p.used_count}${p.max_uses ? ' / ' + p.max_uses : ' (unlimited)'}</b> · ${p.per_user_limit} per customer${p.min_total > 0 ? ' · min ' + money(p.min_total) : ''} · customers saved ${money(p.total_discount)}</small>
+    ${p.max_uses ? `<div class="bar"><i style="width:${Math.min(100, (p.used_count / p.max_uses) * 100)}%"></i></div>` : ''}
+    <div style="grid-column:1/-1"><button class="btn sm ${p.active ? 'danger' : 'ghost'}" data-ptoggle="${esc(p.code)}" data-on="${p.active ? 0 : 1}">${p.active ? 'Switch off' : 'Switch on'}</button></div></div>`).join('')}
+  <h3 style="margin-top:16px">Recent uses</h3>
+  ${!A.red ? '' : A.red.length ? A.red.map(r => `<div class="ptx"><span><b class="mono">${esc(r.code)}</b> · booking <span class="ref">${esc(r.booking_ref)}</span></span><small>${esc(r.redeemed)} · ${esc(r.email || '')}</small>
+    <span class="amt" style="color:var(--ok)">−${money(r.discount)}</span></div>`).join('') : '<p class="mute">Nobody has used a code yet.</p>'}</section>`;
+}
+
+function readPromoForm() {
+  const v = id => ($('#' + id) || {}).value || '';
+  return { code: v('pc_code').toUpperCase(), desc: v('pc_desc'), type: v('pc_type'), value: v('pc_value'), valid_from: v('pc_from'), valid_until: v('pc_until'), max: v('pc_max'), per: v('pc_per'), min: v('pc_min') };
+}
+async function createPromo() {
+  const A = S.admin; A.form = readPromoForm();
+  const F = A.form;
+  try {
+    await api.adminCreate({ code: F.code, description: F.desc, type: F.type, value: F.value, valid_from: F.valid_from, valid_until: F.valid_until, max_uses: F.max, per_user_limit: F.per, min_total: F.min });
+    toast(`Promo code ${F.code} created`); A.err = ''; A.form = { type: 'percent' }; A.promos = null; render();
+  } catch (e) { A.err = e.message; render(); }
+}
+
+function render() {
+  globeControls();
+  if (!S.user) { $('#nav').innerHTML = ''; authView(); return scene(); }
+  $('#nav').innerHTML = [['flights', 'Flights'], ['bookings', 'My Bookings'], ['account', 'My Account'], ...(S.user.role === 'admin' ? [['admin', '🛠 Admin']] : [])]
+    .map(([k, l]) => `<button class="nb ${S.tab === k ? 'on' : ''}" data-tab="${k}" ${S.tab === k ? 'aria-current="page"' : ''}>${l}</button>`).join('');
+  const focus = document.activeElement && document.activeElement.id, keep = [...document.querySelectorAll('.panel')].map(p => p.scrollTop);
+  if (S.tab === 'flights') $('#app').innerHTML = searchPanel() + sidePanel();
+  else if (S.tab === 'bookings') bookingsView();
+  else if (S.tab === 'admin' && S.user.role === 'admin') adminView();
+  else accountView();
+  document.querySelectorAll('.panel').forEach((p, i) => { if (keep[i]) p.scrollTop = keep[i]; });
+  if (focus && $('#' + focus)) $('#' + focus).focus();
+  scene();
+}
+
+/* =====================================================================
+   6. EVENTS
+   ===================================================================== */
+document.addEventListener('click', e => {
+  const d = e.target.closest('[data-ptoggle],#promo_go,#promo_x,#pc_create,[data-pm],[data-g],[data-dest],[data-tab],[data-sort],[data-f],[data-seat],[data-step],[data-pi],[data-date],[data-leg],[data-bf],[data-cancel],[data-docancel],[data-pass],[data-close],[data-signout],#swap,#conf,#toret,#bookret,#explore,#closebk,#a_sw,#a_demo,#saveprof,#savepw');
+  if (!d) return;
+  const ds = d.dataset;
+  if (ds.pm) { S.payment = +ds.pm; S.err = ''; return render(); }
+  if (d.id === 'promo_go') return applyPromo($('#promo_in').value);
+  if (d.id === 'promo_x') { S.promo.applied = null; S.promo.err = ''; return render(); }
+  if (d.id === 'pc_create') return createPromo();
+  if (ds.ptoggle) { api.adminToggle(ds.ptoggle, ds.on === '1').then(() => { S.admin.promos = null; render(); }).catch(err => toast(err.message)); return; }
+  if (ds.close) { if (e.target === d || d.tagName === 'BUTTON') modal(''); return; }
+  if (d.tagName === 'A') e.preventDefault();
+  if (ds.g) { if (ds.g === 'kz') E.home(); if (ds.g === 'world') E.worldView(); if (ds.g === 'in') E.zoomBy(1.4); if (ds.g === 'out') E.zoomBy(1 / 1.4); return; }
+  if (ds.tab) { S.tab = ds.tab; lastScene = ''; return render(); }
+  if (ds.signout) return signOut();
+  if (ds.dest) { S.q.to = ds.dest; return search({ ...S.q }); }
+  if (ds.sort) { S.sort = ds.sort; return render(); }
+  if (ds.leg) { if (S.leg !== ds.leg) { const keep = S.travelers; resetBooking(); S.travelers = keep; S.leg = ds.leg; } return render(); }
+  if (ds.date) return changeDate(ds.date);
+  if (ds.f) return pickFlight(+ds.f);
+  if (ds.seat) return toggleSeat(+ds.seat);
+  if (ds.pi !== undefined) { if (ds.check) { const err = validateTraveler(S.pi); if (err) { S.err = err; return render(); } } S.err = ''; S.pi = +ds.pi; return render(); }
+  if (ds.step) return goStep(+ds.step);
+  if (ds.bf) { S.bFilter = ds.bf; return render(); }
+  if (ds.pass) { e.stopPropagation(); return showPasses(ds.pass); }
+  if (ds.cancel) { e.stopPropagation(); return askCancel(ds.cancel); }
+  if (ds.docancel) return doCancel(ds.docancel);
+  if (d.id === 'swap') { [S.q.from, S.q.to] = [S.q.to, S.q.from]; if (!S.searched) lastScene = ''; return render(); }
+  if (d.id === 'conf') return confirmBooking();
+  if (d.id === 'toret') return toReturn();
+  if (d.id === 'bookret') return bookReturn();
+  if (d.id === 'closebk') { resetBooking(); return render(); }
+  if (d.id === 'explore') { S.searched = null; resetBooking(); lastScene = ''; return render(); }
+  if (d.id === 'a_sw') { S.reg = !S.reg; S.authErr = ''; return render(); }
+  if (d.id === 'a_demo') { S.af.a_em = $('#a_em').value = 'aruzhan@gmail.com'; S.af.a_pw = $('#a_pw').value = 'demo1234'; return; }
+  if (d.id === 'saveprof') return saveProfile();
+  if (d.id === 'savepw') return changePassword();
+});
+document.addEventListener('submit', e => {
+  e.preventDefault();
+  if (e.target.id === 'authform') return authSubmit();
+  if (e.target.id === 'searchform') return search({ ...S.q });
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') modal('');
+  if (e.key === 'Enter' && e.target.id === 'promo_in') { e.preventDefault(); applyPromo(e.target.value); }
+  if ((e.key === 'Enter' || e.key === ' ') && e.target.matches('[data-f],[data-date],.logo')) { e.preventDefault(); e.target.click(); }
+});
+document.addEventListener('change', e => {
+  const t = e.target;
+  if (['from', 'to', 'date', 'ret', 'cabin'].includes(t.id)) S.q[t.id] = t.value;
+  if (t.id === 'pax') S.q.pax = +t.value;
+  if (t.id === 'date' && S.q.ret && S.q.ret < S.q.date) { S.q.ret = ''; $('#ret').value = ''; }
+  if (t.id === 'date') $('#ret').min = S.q.date;
+  if (t.id === 'from' && !S.searched) { lastScene = ''; render(); }
+  if (t.dataset.bag !== undefined) { S.travelers[+t.dataset.bag].baggage_kg = +t.value; render(); if (S.promo.applied) applyPromo(S.promo.applied.code); }   // total changed: re-check the discount
+  if (t.id === 'pc_type') { S.admin.form = readPromoForm(); render(); }
+  if (t.id === 'pm') S.payment = +t.value;
+});
+document.addEventListener('input', e => {
+  const t = e.target;
+  if (t.dataset.k && S.travelers[S.pi]) S.travelers[S.pi][t.dataset.k] = t.value;
+  if (t.id === 'k_phone') S.kaspi = t.value;
+  if (t.id === 'promo_in') S.promo.input = t.value.toUpperCase();
+  if (t.id && t.id in S.af) S.af[t.id] = t.value;
+  if (t.dataset.card) {                                     // format card fields as you type
+    let v = t.value;
+    if (t.dataset.card === 'number') { v = v.replace(/\D/g, '').slice(0, 19).replace(/(\d{4})(?=\d)/g, '$1 '); const b = $('#cbrand'); if (b) b.textContent = brandOf(v.replace(/\D/g, '')); }
+    if (t.dataset.card === 'exp') { v = v.replace(/\D/g, '').slice(0, 4); if (v.length > 2) v = v.slice(0, 2) + '/' + v.slice(2); }
+    if (t.dataset.card === 'cvc') v = v.replace(/\D/g, '').slice(0, 4);
+    if (t.dataset.card === 'name') v = v.toUpperCase();
+    if (v !== t.value) t.value = v;
+    S.card[t.dataset.card] = v;
+  }
+});
+let hovT;
+document.addEventListener('mouseover', e => {
+  const d = e.target.closest('[data-dest]'), code = d ? d.dataset.dest : null;
+  if (code !== S._hov) { S._hov = code; if (E) E.setHover(code); globeHover(code); }
+  const b = e.target.closest('[data-bkr]');
+  if (b && b !== S._hb && E) { S._hb = b; clearTimeout(hovT);
+    document.querySelectorAll('.bk').forEach(x => x.classList.toggle('hot', x === b));
+    hovT = setTimeout(() => { E.set({ hl: { from: b.dataset.o, to: b.dataset.d } }); E.focusRoute(b.dataset.o, b.dataset.d, 900); }, 120); }
+});
+
+/* starfield behind the globe */
+function stars() {
+  const c = $('#space'), dpr = Math.min(devicePixelRatio || 1, 2), w = innerWidth, h = Math.max(innerHeight, document.documentElement.clientHeight);
+  c.width = w * dpr; c.height = h * dpr; c.style.width = w + 'px'; c.style.height = h + 'px';
+  const x = c.getContext('2d'); x.scale(dpr, dpr);
+  const g = x.createRadialGradient(w * 0.5, h * 0.5, 0, w * 0.5, h * 0.5, Math.max(w, h) * 0.7);
+  g.addColorStop(0, '#071229'); g.addColorStop(1, '#01030a'); x.fillStyle = g; x.fillRect(0, 0, w, h);
+  let seed = 7; const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
+  for (let i = 0; i < (w * h) / 1400; i++) {
+    const r = rnd() < 0.92 ? rnd() * 0.9 + 0.2 : rnd() * 1.4 + 0.8;
+    x.fillStyle = `rgba(${200 + rnd() * 55},${210 + rnd() * 45},255,${0.25 + rnd() * 0.7})`;
+    x.beginPath(); x.arc(rnd() * w, rnd() * h, r, 0, 7); x.fill();
+  }
+}
+addEventListener('resize', () => { clearTimeout(stars.t); stars.t = setTimeout(stars, 200); });
+
+/* =====================================================================
+   7. START
+   ===================================================================== */
+async function boot() {
+  try { if (!S.airports.length) [S.airports, S.routes] = await Promise.all([api.airports(), api.routes()]); } catch (e) { S.authErr = e.message; }
+  if (!E) initEarth();
+  if (TOKEN && !S.user) { try { S.user = await api.me(); } catch { TOKEN = null; } }
+  if (S.user) {
+    try { [S.cfg, S.methods, S.routes] = await Promise.all([api.config(), api.methods(), api.routes()]);
+      S.payment = S.payment || (S.methods[0] && S.methods[0].payment_method_id); } catch (e) { S.err = e.message; }
+  }
+  lastScene = ''; render();
+}
+stars(); boot();
+</script>
+</body>
+</html>
